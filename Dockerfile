@@ -19,7 +19,7 @@ RUN cd /home && wget "http://archive.apache.org/dist/httpd/$APACHE_VERSION.tar.g
 	"http://cn2.php.net/distributions/$PHP_VERSION.tar.gz"
 
 RUN cd /home && tar -xzf $APACHE_VERSION.tar.gz && cd $APACHE_VERSION \
-	&& ./configure --prefix=/usr/local/apache \
+	&& ./configure --prefix=/usr/local/apache --enable-so --enable-ssl --enable-rewrite --with-zlib --with-pcre --enable-mpms-shared=all --with-mpm=event \
 	&& make -j"$(nproc)" && make install \
 	&& sed -i 's/ daemon$/ www-data/g' /usr/local/apache/conf/httpd.conf \
 	&& rm -rf /usr/local/apache/logs \
