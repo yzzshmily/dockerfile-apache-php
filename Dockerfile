@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y mcrypt libfreetype6 libpng12-0 libjpeg6
 #compile dep
 ENV PHP_COMPILE_DEP "libmcrypt-dev libjpeg-dev libpng12-dev libfreetype6-dev \
 	libcurl4-openssl-dev libreadline6-dev librecode-dev libsqlite3-dev \
-        libssl-dev libxml2-dev xz-utils"
+        libssl-dev libxml2-dev xz-utils vim "
 RUN apt-get update && apt-get install -y $PHP_COMPILE_DEP --no-install-recommends --fix-missing
 
 RUN cd /home && wget "http://archive.apache.org/dist/httpd/$APACHE_VERSION.tar.gz" \
