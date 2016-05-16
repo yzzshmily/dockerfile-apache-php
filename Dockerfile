@@ -8,22 +8,25 @@ ENV PHP_COMPILE_TOOL "wget autoconf file g++ gcc libc-dev make pkg-config re2c"
 RUN apt-get update && apt-get install -y $PHP_COMPILE_TOOL --no-install-recommends --fix-missing
 #runtime dep
 RUN apt-get update && apt-get install -y mcrypt libfreetype6 libpng12-0 libjpeg62-turbo \
-	ca-certificates curl librecode0 libsqlite3-0 libxml2 --no-install-recommends --fix-missing
+	ca-certificates curl librecode0 libsqlite3-0 libxml2  vim w3m wget --no-install-recommends --fix-missing
 #compile dep
 ENV PHP_COMPILE_DEP "libmcrypt-dev libjpeg-dev libpng12-dev libfreetype6-dev \
 	libcurl4-openssl-dev libreadline6-dev librecode-dev libsqlite3-dev \
-        libssl-dev libxml2-dev xz-utils vim "
+        libssl-dev libxml2-dev xz-utils"
 RUN apt-get update && apt-get install -y $PHP_COMPILE_DEP --no-install-recommends --fix-missing
 
 RUN cd /home && wget "http://archive.apache.org/dist/httpd/$APACHE_VERSION.tar.gz" \
-	"http://cn2.php.net/distributions/$PHP_VERSION.tar.gz"
+	"http://cn2.php.net/distributions/$PHP_VERSION.tar.gz" \
+	"http://xdebug.org/files/xdebug-2.4.0.tgz"
 
 RUN cd /home && tar -xzf $APACHE_VERSION.tar.gz && cd $APACHE_VERSION \
 	&& ./configure --prefix=/usr/local/apache --enable-so --enable-ssl --enable-rewrite --with-zlib --with-pcre --enable-mpms-shared=all --with-mpm=event \
 	&& make -j"$(nproc)" && make install \
 	&& sed -i 's/ daemon$/ www-data/g' /usr/local/apache/conf/httpd.conf \
 	&& rm -rf /usr/local/apache/logs \
-	&& echo "<FilesMatch \.php$>\n	SetHandler application/x-httpd-php\n</FilesMatch>\nInclude conf/conf.d/*.conf" >> /usr/local/apache/conf/httpd.conf
+	&& echo "<FilesMatch \.php$>\n	SetHandler application/x-httpd-php\n</FilesMatch>\nInclude conf/conf.d/*.conf" >> /usr/local/apache/conf/httpd.conf \
+	&& echo "ServerName localhost" >> /usr/local/apache/conf/httpd.conf \
+	&&  usermod -u 1000 www-data
 VOLUME ["/usr/local/apache/conf/conf.d","/usr/local/apache/logs","/usr/local/apache/data"]
 
 ENV PHP_DIR=/usr/local/php APACHE_DIR=/usr/local/apache
@@ -36,6 +39,9 @@ RUN cd /home && tar -xzf $PHP_VERSION.tar.gz && cd $PHP_VERSION \
 		--with-apxs2="$APACHE_DIR/bin/apxs" \
 	&& make -j"$(nproc)" && make install && chown www-data:www-data $PHP_DIR/logs
 
+RUN cd /home && tar -xvzf xdebug-2.4.0.tgz && cd xdebug-2.4.0 \
+	 && $PHP_DIR/bin/phpize \
+	&& ./configure --with-php-config=$PHP_DIR/bin/php-config --enable-xdebug && make && make install && cp modules/xdebug.so /usr/local/php/lib/php/extensions/no-debug-zts-20121212 
 RUN apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
 	-o APT::AutoRemove::SuggestsImportant=false \
 	$PHP_COMPILE_TOOL $PHP_COMPILE_DEP \

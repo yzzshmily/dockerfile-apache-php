@@ -1,5 +1,5 @@
 #!/bin/bash
-DATA_DIR=/data/apache-php-nomysql
+DATA_DIR=/Users/hondge/data/apache-php-nomysql
 if [ ! -d "$DATA_DIR/logs/apache" ];then
 	mkdir -p $DATA_DIR/{logs,data,conf}/apache
 fi
@@ -29,13 +29,22 @@ echo 'NameVirtualHost *:80
 </VirtualHost>' >$DATA_DIR/conf/apache/httpd-vhosts.conf
 fi
 if [ ! -f "$DATA_DIR/conf/php/opcache.ini" ];then
-echo '[opcache]
+echo 'date.timezone=Asia/Shanghai
+[opcache]
 zend_extension=opcache.so
 opcache.memory_consumption=128
-opcache.interned_strings_buffer=8
 opcache.max_accelerated_files=4000
-opcache.revalidate_freq=6
+opcache.interned_strings_buffer=8
+opcache.revalidate_freq=2
 opcache.fast_shutdown=1
-opcache.enable_cli=1' >$DATA_DIR/conf/php/opcache.ini
+opcache.enable_cli=1
+[xdebug]
+zend_extension="/usr/local/php/lib/php/extensions/no-debug-zts-20121212/xdebug.so"
+xdebug.remote_enable=1
+xdebug.remote_host=192.168.1.102
+xdebug.remote_port=9000
+xdebug.remote_autostart=1
+xdebug.idekey="PHPSTORM"
+' >$DATA_DIR/conf/php/opcache.ini
 fi
-docker run -d -p 8082:80 -v /Users/hondge/Company/taishuo/projects/weixiao/server/trunk/5xiaoyuan_test:/usr/local/apache/data -v $DATA_DIR/conf/apache:/usr/local/apache/conf/conf.d -v $DATA_DIR/logs/apache:/usr/local/apache/logs -v $DATA_DIR/conf/php:/usr/local/php/conf/conf.d -v $DATA_DIR/logs/php:/usr/local/php/logs yzc/apache-php:2.2-5.5
+docker run  --privileged=true  -d -p 9082:80 -v /Users/hondge/trunk_weixiao/5xiaoyuan_test:/usr/local/apache/data -v $DATA_DIR/conf/apache:/usr/local/apache/conf/conf.d -v $DATA_DIR/logs/apache:/usr/local/apache/logs -v $DATA_DIR/conf/php:/usr/local/php/conf/conf.d -v $DATA_DIR/logs/php:/usr/local/php/logs yzc/apache-php:2.2-5.5
